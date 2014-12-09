@@ -1,0 +1,102 @@
+/**
+*@author Hemil Desai
+*@username desai38
+* 
+*/
+
+import java.util.*;
+
+public class Volunteer {
+    
+    private Model m = new Model();
+    private String name;
+    private int score;
+    private Location current;
+    private Location destination;
+    private Location start;
+    private Boolean move = false;
+    private long time;
+    private long t = 0;
+    private Request request;
+    
+    public Volunteer(Model model,String name,int score,Location location) {
+        m = model;
+        this.name = name;
+        this.score = score;
+        this.current = location;
+        start = location;
+        start.addVolunteer(this);
+        m.addVolunteer(this);
+    }
+    
+    public Location getCurrentLocation() {
+        
+        return current;
+        
+    }
+    
+    public double[] getCurrentPosition() {
+        long t1= System.currentTimeMillis();
+        double[] s = start.getXY();
+        double[] f = destination.getXY();
+        double v1 = (f[0]-s[0])/this.time;
+        double v2 = (f[1]-s[1])/this.time;
+        if(t != 0) {
+            if((t1 - t) - this.time < 0) {
+                s[0] += v1 * (t1-t);
+                s[1] += v2 * (t1-t);
+                return s;
+            } else {
+                current = destination;
+                current.addVolunteer(this);
+                return destination.getXY();
+            }
+        } else {
+            return current.getXY();
+        }
+    }
+    
+    public double[] getDestination() {
+        return destination.getXY();
+    }
+    
+    public String getName() {
+        return name;
+    }
+    
+    public String getRequester() {
+        return request.getName();
+    }
+    
+    public double[] getStart() {
+        return start.getXY();
+    }
+    
+    public int getScore() {
+        return score;
+    }
+    
+    public void startMoving(Location destination, long timeRequired) {
+        current.removeVolunteer(this);
+        start = current;
+        current = null;
+        t = System.currentTimeMillis();
+        time = timeRequired;
+        this.destination = destination;
+    }
+    
+    public void startWalking(Request request, long timeRequired) {
+        this.request = request;
+        current.removeVolunteer(this);
+        current.removeRequest(this.request);
+        m.removeRequest(this.request);
+        
+        start = current;
+        current = null;
+        
+        t = System.currentTimeMillis();
+        time = timeRequired;
+        this.destination = this.request.getDestination();
+    }
+}
+        

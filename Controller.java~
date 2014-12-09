@@ -1,0 +1,80 @@
+import javax.swing.*;
+
+public class Controller extends SwingWorker<Object, Object> implements Observer {
+    
+    private Model model;
+    private View view;
+    private static final String HOST = "pc.cs.purdue.edu";
+    private static final int PORT = 1337;
+
+    private Connector connector;
+    
+    public Controller(Model model, View view) {
+        this.model = model;
+        this.view = view;
+        
+        connector = new Connector(HOST, PORT, "connect monitor", this);
+        
+        execute();
+    }
+    
+    public void update(Observable arg1, Object arg2) {
+        String message = (String) arg2;
+        String[] fields = message.split(" ");
+        
+        if(fields[0].equals("location")) {
+            handleLocation(fields);
+        } else if(fields[0].equals("volunteer")) {
+            handleVolunteer(fields);
+        } else if(fields[0].equals("request")) {
+            handleRequest(fields);
+        } else if(fields[0].equals("moving")) {
+            handleMoving(fields);
+        } else if(fields[0].equals("walking")) {
+            handleWalking(fields);
+        } else {
+            handleDelete(fields);
+        }
+    }
+    
+    public void handleLocation(String[] fields) {
+        String name = fields[1];
+        Double x = Double.parseDouble(fields[2]);
+        Double y = Double.parseDouble(fields[3]);
+        
+        model.addLocation(new Location(model, name, x, y));
+    }
+    
+    public void handleRequest(String[] fields) {
+        String name = fields[1];
+        String fromLocation = fields[2];
+        String toLocation = fields[3];
+        int value = Integer.parseInt(fields[4]);
+        
+        Location from = model.getLocationByName(fromLocation);
+        Location to = model.getLocationByName(toLocation);
+        
+        model.addRequest(new Request(model, name, from, to, value));
+    }
+    
+    public void handleVolunteer(String[] fields) {
+        String name = fields[1];
+        String loc = fields[2];
+        int score = Integer.parseInt(fields[3]);
+        
+        Location l = model.getLocationByName(loc);
+        
+        model.addVolunteer(model, name, score, l);
+    }
+    
+    public void handleWalking(String[] fields) {
+        String v = fields[1];
+        String r = fields[2];
+        String fromLocation = fields[3];
+        String toLocation = fields[4];
+        Long time = Long.parseLong(fields[5]);
+        
+        Location from = model.getLocationByName(fromLocation);
+        Location to = model.getLocationByName(toLocation);
+        
+        
